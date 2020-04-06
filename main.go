@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/tarm/serial"
@@ -42,7 +41,8 @@ func (t *thing) runCommand(command, arg string) (string, error) {
 		data += "=" + arg
 	}
 	var err error
-	time.Sleep(2 * time.Second)
+	// windows ?
+	//time.Sleep(2 * time.Second)
 	log.Println("write")
 	_, err = fmt.Fprint(t.w, data+"\n")
 	if err != nil {
@@ -90,18 +90,20 @@ func (t *thing) runCommand(command, arg string) (string, error) {
 // Get all books
 func sendOverPort(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
-	var portName string
+	var portName string = "/dev/"
 	var command string
 	var args string
 	var err error
 	if val, ok := pathParams["port"]; ok {
-		portName = val
+		portName = portName + val
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(`{"message": "need a port"}`))
 			return
 		}
 	}
+
+	log.Println("port:" + portName)
 
 	if val, ok := pathParams["command"]; ok {
 		command = val

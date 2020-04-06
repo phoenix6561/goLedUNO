@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/tarm/serial"
 )
 
@@ -40,6 +42,7 @@ func (t *thing) runCommand(command, arg string) (string, error) {
 		data += "=" + arg
 	}
 	var err error
+	time.Sleep(2 * time.Second)
 	log.Println("write")
 	_, err = fmt.Fprint(t.w, data+"\n")
 	if err != nil {
@@ -53,49 +56,74 @@ func (t *thing) runCommand(command, arg string) (string, error) {
 			return "", err
 		}
 	}
-
-	var response []string
-	for {
-		log.Println("read")
-		line, err := t.r.ReadString('\n')
-		if err != nil {
-			return "", err
-		}
-		line = strings.TrimSpace(line)
-		log.Println("line", line)
-
-		if strings.HasPrefix(line, "ERR:") {
-			return "", &commandError{
-				Command: command,
-				Arg:     arg,
-				Message: strings.TrimSpace(strings.TrimPrefix(line, "ERR:")),
+	/*
+		var response []string
+		for {
+			log.Println("read")
+			line, err := t.r.ReadString('\n')
+			if err != nil {
+				return "", err
 			}
+			line = strings.TrimSpace(line)
+			log.Println("line", line)
+
+			if strings.HasPrefix(line, "ERR:") {
+				return "", &commandError{
+					Command: command,
+					Arg:     arg,
+					Message: strings.TrimSpace(strings.TrimPrefix(line, "ERR:")),
+				}
+			}
+
+			if line == "OK" {
+				break
+			}
+
+			response = append(response, line)
 		}
-
-		if line == "OK" {
-			break
-		}
-
-		response = append(response, line)
-	}
-
+	*/
+	var response []string
+	response = append(response, "OK")
 	return strings.Join(response, "\n"), nil
 }
 
 // Get all books
 func sendOverPort(w http.ResponseWriter, r *http.Request) {
+	pathParams := mux.Vars(r)
+	var portName string
+	var command string
+	var args string
+	var err error
+	if val, ok := pathParams["port"]; ok {
+		portName = val
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message": "need a port"}`))
+			return
+		}
+	}
+
+	if val, ok := pathParams["command"]; ok {
+		command = val
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message": "need a command"}`))
+			return
+		}
+	}
+
+	if val, ok := pathParams["args"]; ok {
+		args = val
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message": "need a arg"}`))
+			return
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	port, err := serial.OpenPort(&serial.Config{Name: "COM3", Baud: 9600})
-	// options := serial.OpenOptions{
-	// 	PortName: "COM3",
-	// 	BaudRate: 115200,
-	// 	DataBits: 8,
-	// 	StopBits: 1,
-	// }
+	port, err := serial.OpenPort(&serial.Config{Name: portName, Baud: 9600})
 
-	// Open the port.
-	// port, err := serial.Open(options)
 	if err != nil {
 		log.Fatalf("serial.Open: %v", err)
 	}
@@ -104,20 +132,9 @@ func sendOverPort(w http.ResponseWriter, r *http.Request) {
 
 	t := newThing(port)
 
-	_, err = t.runCommand("ATCOLOR", "B_ON")
+	_, err = t.runCommand(command, args)
 	if err != nil {
 		log.Fatalln(err)
-	}
-
-	state, err := t.runCommand("ATCOLOR?", "")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("state:", state)
-
-	_, err = t.runCommand("INVALID", "")
-	if err != nil {
-		log.Println("expected error:", err)
 	}
 
 	//json.NewEncoder(w).Encode(books)
@@ -125,44 +142,11 @@ func sendOverPort(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	port, err := serial.OpenPort(&serial.Config{Name: "COM3", Baud: 9600})
-	// options := serial.OpenOptions{
-	// 	PortName: "COM3",
-	// 	BaudRate: 115200,
-	// 	DataBits: 8,
-	// 	StopBits: 1,
-	// }
+	fmt.Println("application started on port 8081")
+	r := mux.NewRouter()
 
-	// Open the port.
-	// port, err := serial.Open(options)
-	if err != nil {
-		log.Fatalf("serial.Open: %v", err)
-	}
-	defer port.Close()
+	r.HandleFunc("/api/serial/{port}/{command}/{args}", sendOverPort).Methods("POST")
 
-	t := newThing(port)
-
-	_, err = t.runCommand("ATBEEP", "")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	state, err := t.runCommand("ATCOLOR?", "")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("state:", state)
-
-	_, err = t.runCommand("INVALID", "")
-	if err != nil {
-		log.Println("expected error:", err)
-	}
-
-	// fmt.Println("application started on port 8000")
-	// r := mux.NewRouter()
-
-	// r.HandleFunc("/api/serial", sendOverPort).Methods("POST")
-
-	// log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(":8081", r))
 
 }

@@ -1,0 +1,62 @@
+
+#define BLUE  3
+#define RED  6
+#define GREEN 5
+#define BEEP 2
+void setup()
+
+
+
+{
+
+pinMode(BLUE, OUTPUT);
+pinMode(RED, OUTPUT);
+pinMode(GREEN, OUTPUT);
+pinMode(BEEP, OUTPUT);
+Serial.begin(9600);
+
+while (!Serial){
+analogWrite(RED, 255);
+}
+analogWrite(RED, 0);
+}
+
+int state = 0;
+
+void loop() {
+    if (!Serial.available()) return;
+
+    String line = Serial.readStringUntil('\n');
+
+    int sep = line.indexOf('=');
+    String command;
+    String arg;
+    if (sep == -1){
+        command = line;
+    } else {
+        command = line.substring(0, sep);
+        arg = line.substring(sep+1);
+    }
+
+    if (command == "ATCOLOR") {
+        if (arg == "B_ON") {
+            analogWrite(BLUE, 255);
+        } else if (arg == "B_OFF") {
+            analogWrite(BLUE, 0);
+        } else {
+            Serial.println("ERR: Unknown arg for ATCOLOR.");
+            return;
+        }
+    } else if (command == "ATBEEP") {
+        digitalWrite(BEEP, HIGH);
+        delay(1000);
+        digitalWrite(BEEP, LOW);
+    } else if (command == "ATCOLOR?") {
+        Serial.println(state);
+    } else {
+        Serial.println("ERR: Unknown command.");
+        return;
+    }
+
+    Serial.println("OK");
+}

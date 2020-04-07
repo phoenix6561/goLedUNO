@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gobuffalo/packr"
+
 	"github.com/gorilla/mux"
 	"github.com/tarm/serial"
 )
@@ -148,6 +150,17 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/serial/{port}/{command}/{args}", sendOverPort).Methods("POST")
+
+	// set up a new box by giving it a (relative) path to a folder on disk:
+	box := packr.NewBox("./templates")
+
+	// Get the string representation of a file, or an error if it doesn't exist:
+	_, err := box.FindString("index.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r.Handle("/", http.FileServer(box))
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 

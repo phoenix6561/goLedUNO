@@ -15,16 +15,12 @@ pinMode(GREEN, OUTPUT);
 pinMode(BEEP, OUTPUT);
 Serial.begin(9600);
 
-while (!Serial){
-analogWrite(RED, 255);
+Serial.setTimeout(50000);
 }
-analogWrite(RED, 0);
-}
-
 int state = 0;
 
 void loop() {
-    if (!Serial.available()) return;
+  //  if (!Serial.available()) return;
 
     String line = Serial.readStringUntil('\n');
 
@@ -54,9 +50,10 @@ void loop() {
     } else if (command == "ATCOLOR?") {
         Serial.println(state);
     } else {
+        
         Serial.println("ERR: Unknown command.");
         return;
     }
-
+    
     Serial.println("OK");
 }

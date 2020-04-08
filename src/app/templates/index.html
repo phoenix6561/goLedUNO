@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Go serial</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        
+        <link rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+            integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+            crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+        <script
+            src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+        <script
+            src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+        <script
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        </head>
+
+
+<body>
+   
+
+        <div class="container">
+
+		
+
+<table id="commandsTable" class = "table" >
+
+
+
+</table>
+			
+
+
+			
+
+		
+	</div>
+
+
+
+</body>
+
+<script>
+	$(document).ready(function() {
+
+        $.getJSON("/api/commands", function(data, status) {
+				console.log("commands");
+				
+                console.log(status);
+                parseCommands(data)
+			});
+
+
+        
+		$("#blueON").click(function() {
+			$.post("/api/serial/ttyACM0/ATCOLOR/B_ON", function(data, status) {
+				console.log("blue on");
+				console.log(data);
+				console.log(status);
+			});
+		});
+
+		$("#blueOFF").click(function() {
+			$.post("/api/serial/ttyACM0/ATCOLOR/B_OFF", function(data, status) {
+				console.log("blue off");
+			});
+		});
+        
+        $("#commandsTable").on('click' ,'.cmdbtn', function() {
+            var id = $(this).attr("id");
+            console.log(id);
+            
+            parceCommandAndPost(id);
+		});
+
+    });
+    
+function parceCommandAndPost(id){
+    $.getJSON("/api/commands", function(data, status) {
+				
+                console.log(id);
+                console.log(data);
+                
+            
+      for (x in data) {
+
+      commandID ="cmdbtn#" + data[x].id
+      console.log(commandID);
+      
+      if(commandID.trim() === id.trim()){
+
+var commandString = data[x].address + "/api/serial/" +  data[x].port +"/" + data[x].command + "/" + data[x].parm
+
+            $.post(commandString, function(data, status) {
+				console.log("sent command " + commandString );
+			});
+
+
+     
+        }
+
+
+      }
+            
+            
+            });
+            
+
+
+
+
+}
+
+
+    function parseCommands(commands){
+    console.log(commands)
+   
+    
+var txt = "<tr> <th>ID</th> <th>address</th> <th>port</th><th>command</th><th>parm</th> </tr>";
+      
+      for (x in commands) {
+        txt += "<tr>";
+        txt += "<td>" + commands[x].id + "</td>";
+        txt += "<td>" + commands[x].address + "</td>";
+        txt += "<td>" + commands[x].port + "</td>";
+        txt += "<td>" + commands[x].command + "</td>";
+        txt += "<td>" + commands[x].parm + "</td>";
+        txt += "<td>   <button id = \" cmdbtn#" +commands[x].id +"\" type=\"button\" class=\"cmdbtn btn btn-primary\">run </button> </td>";
+
+        txt += "</tr>"
+    
+    }
+      
+      document.getElementById("commandsTable").innerHTML = txt;
+
+
+    }
+    
+</script>
+
+
+</html>

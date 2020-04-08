@@ -28,7 +28,7 @@ func NewCommand(id int, address string, port string, command string, parm string
 func Connect() *sql.DB {
 
 	db, err := sql.Open("mysql",
-		"go:Password1@tcp(127.0.0.1:3306)/goserial")
+		"go:Password1@tcp(10.0.0.99:3306)/goserial")
 	if err != nil {
 		log.Fatal(err)
 	}

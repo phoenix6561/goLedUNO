@@ -1,5 +1,5 @@
 mode:
-  usedb: "false"
+  usedb: "true"
   hostfe: "true"
 database:
   user: "go"

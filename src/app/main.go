@@ -51,6 +51,9 @@ func getAllCommandsNoDB(w http.ResponseWriter, r *http.Request) {
 
 	var commands []dao.Command
 	commands = append(commands, *dao.NewCommand(1, "fake", "fake", "fake", "fake"))
+	commands = append(commands, *dao.NewCommand(2, "fake2", "fake2", "fake2", "fake2"))
+	commands = append(commands, *dao.NewCommand(3, "fake3", "fake3", "fake3", "fake3"))
+	commands = append(commands, *dao.NewCommand(4, "fake4", "fake4", "fake4", "fake4"))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -25,10 +25,9 @@ func NewCommand(id int, address string, port string, command string, parm string
 }
 
 // Connect to database
-func Connect() *sql.DB {
+func Connect(dbType string, userName string, password string, address string, scema string) *sql.DB {
 
-	db, err := sql.Open("mysql",
-		"go:Password1@tcp(10.0.0.99:3306)/goserial")
+	db, err := sql.Open(dbType, userName+":"+password+"@tcp("+address+")/"+scema)
 	if err != nil {
 		log.Fatal(err)
 	}

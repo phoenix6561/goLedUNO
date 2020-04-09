@@ -97,7 +97,7 @@ func main() {
 		r.Handle("/", http.FileServer(box))
 	} else {
 
-		log.Println("user interface webserver disabled")
+		log.Println("user interface webserver disabled!")
 
 	}
 

@@ -115,7 +115,7 @@ func getConfig() *config {
 	}
 	fmt.Println("dir: " + dir)
 
-	f, err := os.Open(dir + "\\config.yml")
+	f, err := os.Open(dir + string(os.PathSeparator) + "config.yml")
 
 	if err != nil {
 		log.Fatalln("failed to process config")

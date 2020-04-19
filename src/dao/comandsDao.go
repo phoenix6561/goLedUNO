@@ -77,3 +77,28 @@ func FindAll(db *sql.DB) []Command {
 	}
 	return commands
 }
+
+// InsertNewCommand ...
+func InsertNewCommand(db *sql.DB, command Command) {
+	sql := "insert into commands (address,port,command,parm) values ( ? , ? , ? , ? )"
+
+	stmt, err := db.Prepare(sql)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	res, err := stmt.Exec(command.Address, command.Port, command.Command, command.Parm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastID, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("ID = %d, affected = %d\n", lastID, rowCnt)
+
+}

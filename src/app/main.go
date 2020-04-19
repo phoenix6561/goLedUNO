@@ -61,6 +61,17 @@ func getAllCommandsNoDB(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func addNewCommand(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var t dao.Command
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	dao.InsertNewCommand(db, t)
+
+}
+
 func main() {
 	config := getConfig()
 
@@ -70,7 +81,7 @@ func main() {
 
 	if config.Mode.UseDb == "true" {
 		r.HandleFunc("/api/commands", getAllCommands).Methods("GET")
-
+		r.HandleFunc("/api/commands", addNewCommand).Methods("POST")
 		db = dao.Connect(config.Database.Db, config.Database.Username, config.Database.Password, config.Database.Address, config.Database.Scema)
 		dao.Ping(db)
 		fmt.Println("datadase address: " + config.Database.Address)
@@ -103,7 +114,7 @@ func main() {
 
 	fmt.Println("application started on port " + config.Server.Port)
 
-	log.Fatal(http.ListenAndServe(config.Server.Port, r))
+	go log.Fatal(http.ListenAndServe(config.Server.Port, r))
 
 }
 

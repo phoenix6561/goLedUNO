@@ -1,0 +1,11 @@
+mode:
+  usedb: "true"
+  hostfe: "true"
+database:
+  user: "go"
+  pass: "Password1"
+  address: "localhost:3306"
+  scema: "goserial"
+  db: "mysql"
+server:
+  port: ":8081"
